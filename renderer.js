@@ -302,6 +302,8 @@ window.addEventListener("DOMContentLoaded", function () {
         if (payload.type === "available") {
           state.ui.updateReady = false;
           els.installUpdateBtn.classList.add("hidden");
+          els.modeUpdates.classList.add("has-update");
+          setView("updates");
           setUpdateUiState("available", payload.message || "Найдено обновление.");
           return;
         }
@@ -309,6 +311,8 @@ window.addEventListener("DOMContentLoaded", function () {
         if (payload.type === "progress") {
           state.ui.updateReady = false;
           els.installUpdateBtn.classList.add("hidden");
+          els.modeUpdates.classList.add("has-update");
+          setView("updates");
           setUpdateUiState("available", payload.message || "Скачивание обновления...", payload.percent || 0);
           return;
         }
@@ -317,6 +321,7 @@ window.addEventListener("DOMContentLoaded", function () {
           state.ui.updateReady = true;
           els.installUpdateBtn.classList.remove("hidden");
           els.modeUpdates.classList.add("has-update");
+          setView("updates");
           setUpdateUiState("ready", payload.message || "Обновление скачано.");
           return;
         }
