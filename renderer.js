@@ -16,6 +16,7 @@ window.addEventListener("DOMContentLoaded", function () {
   var DEFAULT_AGENT_SIZE = 56;
   var MIN_AGENT_SIZE = 25;
   var MAX_AGENT_SIZE = 140;
+  var NICKNAME_STORAGE_KEY = "dvt_lobby_nickname";
 
   var SERVERS = [
     "wss://dvt-server-production.up.railway.app",
@@ -191,6 +192,29 @@ window.addEventListener("DOMContentLoaded", function () {
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, "")
       .slice(0, 12);
+  }
+
+  function getSavedNickname() {
+    try {
+      var saved = localStorage.getItem(NICKNAME_STORAGE_KEY);
+      if (!saved) return "Player";
+      saved = String(saved).trim().slice(0, 24);
+      return saved || "Player";
+    } catch (_error) {
+      return "Player";
+    }
+  }
+
+  function saveNickname(value) {
+    try {
+      var nickname = String(value || "").trim().slice(0, 24);
+      localStorage.setItem(NICKNAME_STORAGE_KEY, nickname || "Player");
+    } catch (_error) {}
+  }
+
+  function initNicknameField() {
+    if (!els.lobbyNameInput) return;
+    els.lobbyNameInput.value = getSavedNickname();
   }
 
   function renderValoTacPlayers() {
@@ -1336,19 +1360,13 @@ window.addEventListener("DOMContentLoaded", function () {
 
       node.addEventListener("contextmenu", function (event) {
         event.preventDefault();
-      });
-
-      node.addEventListener("pointerup", function (event) {
-        if (event.button === 0 && event.ctrlKey) {
-          event.preventDefault();
-          removeAgentToken(instanceId);
-        }
+        event.stopPropagation();
       });
     });
   }
 
   function beginAgentDrag(event, instanceId) {
-    if (event.button === 0 && event.ctrlKey) {
+    if (event.button === 2) {
       event.preventDefault();
       event.stopPropagation();
       removeAgentToken(instanceId);
@@ -2039,6 +2057,20 @@ window.addEventListener("DOMContentLoaded", function () {
       });
     }
 
+    if (els.lobbyNameInput) {
+      els.lobbyNameInput.addEventListener("input", function () {
+        var cleaned = String(els.lobbyNameInput.value || "").slice(0, 24);
+        els.lobbyNameInput.value = cleaned;
+        saveNickname(cleaned);
+      });
+
+      els.lobbyNameInput.addEventListener("blur", function () {
+        var cleaned = String(els.lobbyNameInput.value || "").trim().slice(0, 24) || "Player";
+        els.lobbyNameInput.value = cleaned;
+        saveNickname(cleaned);
+      });
+    }
+
     window.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && state.ui.onlineModalOpen) {
         closeOnlineModal();
@@ -2111,6 +2143,7 @@ window.addEventListener("DOMContentLoaded", function () {
   updateClearButtonLabel();
   renderValoTacPlayers();
   setLobbyStatus("Offline");
+  initNicknameField();
   bindEvents();
   setView("home");
 });

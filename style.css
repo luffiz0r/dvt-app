@@ -1553,3 +1553,33 @@ canvas {
     max-width: none;
   }
 }
+/* Visible scrollbar only inside ValoTac tips */
+.tips-dropdown:not(.collapsed),
+.tips-dropdown:not(.collapsed) .tips-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 200, 80, 0.45) rgba(255, 255, 255, 0.06);
+}
+
+.tips-dropdown:not(.collapsed)::-webkit-scrollbar,
+.tips-dropdown:not(.collapsed) .tips-panel::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  display: block;
+}
+
+.tips-dropdown:not(.collapsed)::-webkit-scrollbar-track,
+.tips-dropdown:not(.collapsed) .tips-panel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+.tips-dropdown:not(.collapsed)::-webkit-scrollbar-thumb,
+.tips-dropdown:not(.collapsed) .tips-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 200, 80, 0.45);
+  border-radius: 999px;
+}
+
+.tips-dropdown:not(.collapsed)::-webkit-scrollbar-thumb:hover,
+.tips-dropdown:not(.collapsed) .tips-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 200, 80, 0.65);
+}

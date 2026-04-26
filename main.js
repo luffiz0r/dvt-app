@@ -5,18 +5,47 @@ const { autoUpdater } = require("electron-updater");
 let mainWindow = null;
 let isQuittingForUpdate = false;
 
-const isDev = !app.isPackaged;
 const APP_NAME = "DVT";
 const APP_ID = "com.dvt.app";
+const isDev = !app.isPackaged;
 
 app.setName(APP_NAME);
+
 if (process.platform === "win32") {
   app.setAppUserModelId(APP_ID);
 }
 
+Menu.setApplicationMenu(null);
+
 function sendToRenderer(channel, payload) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.send(channel, payload);
+}
+
+function blockDevTools(win) {
+  if (!win || win.isDestroyed()) return;
+
+  win.webContents.on("before-input-event", (event, input) => {
+    const key = String(input.key || "").toLowerCase();
+
+    if (key === "f12") {
+      event.preventDefault();
+      return;
+    }
+
+    if (input.control && input.shift && (key === "i" || key === "j" || key === "c")) {
+      event.preventDefault();
+      return;
+    }
+
+    if (input.control && key === "u") {
+      event.preventDefault();
+    }
+  });
+
+  win.webContents.on("devtools-opened", () => {
+    win.webContents.closeDevTools();
+  });
 }
 
 function createWindow() {
@@ -34,7 +63,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      devTools: true
+      devTools: false
     }
   });
 
@@ -49,6 +78,8 @@ function createWindow() {
     shell.openExternal(url).catch(() => {});
     return { action: "deny" };
   });
+
+  blockDevTools(mainWindow);
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -90,10 +121,8 @@ function setupAutoUpdater() {
   autoUpdater.on("download-progress", (progress) => {
     const percent = Math.round(progress && progress.percent ? progress.percent : 0);
 
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      if (process.platform === "win32") {
-        mainWindow.setProgressBar(percent / 100);
-      }
+    if (mainWindow && !mainWindow.isDestroyed() && process.platform === "win32") {
+      mainWindow.setProgressBar(percent / 100);
     }
 
     sendToRenderer("update-status", {
@@ -159,9 +188,7 @@ function registerIpc() {
 
     try {
       await autoUpdater.checkForUpdates();
-      return {
-        ok: true
-      };
+      return { ok: true };
     } catch (error) {
       return {
         ok: false,
@@ -181,9 +208,7 @@ function registerIpc() {
     isQuittingForUpdate = true;
     autoUpdater.quitAndInstall(false, true);
 
-    return {
-      ok: true
-    };
+    return { ok: true };
   });
 }
 
@@ -214,6 +239,16 @@ app.on("before-quit", () => {
   if (!isQuittingForUpdate && mainWindow && !mainWindow.isDestroyed() && process.platform === "win32") {
     mainWindow.setProgressBar(-1);
   }
+});
+
+app.on("browser-window-created", (_event, win) => {
+  blockDevTools(win);
+});
+
+app.on("web-contents-created", (_event, contents) => {
+  contents.on("devtools-opened", () => {
+    contents.closeDevTools();
+  });
 });
 
 app.on("window-all-closed", () => {
