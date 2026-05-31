@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; connect-src 'self' ws://127.0.0.1:3010 ws://localhost:3010 http://127.0.0.1:3010 http://localhost:3010 wss://dvt-server-production.up.railway.app https://dvt-server-production.up.railway.app; img-src 'self' file: data:; media-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DVT</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <button id="homeBtn" class="home-logo-btn" aria-label="Главное меню">
+        <img src="./build/icon.ico" alt="App icon" />
+      </button>
+
+      <div class="mode-stack">
+        <div class="mode-item">
+          <button id="modeHeroPicker" class="game-mode-btn mode-appear" data-view="hero-picker">
+            <span class="game-mode-icon">
+              <img src="./assets/logo/dota.png" alt="Dota" />
+            </span>
+            <span class="game-mode-label">Hero Picker</span>
+          </button>
+
+          <div id="heroPickerControls" class="controls-inline hidden">
+            <div class="controls-card">
+              <select id="mode" class="select">
+                <option value="" selected>Выберите кол-во героев</option>
+                <option value="1">1 герой</option>
+                <option value="3">3 героя</option>
+                <option value="5">5 героев</option>
+              </select>
+
+              <button id="randomBtn" class="primary-btn">Roll</button>
+
+              <div class="tips compact-tips">
+                <div>Клик по карточке — reroll</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mode-item">
+          <button id="modeValoTac" class="game-mode-btn mode-appear delay-1" data-view="valotac">
+            <span class="game-mode-icon">
+              <img src="./assets/logo/valorant.png" alt="Valorant" />
+            </span>
+            <span class="game-mode-label">ValoTac</span>
+          </button>
+
+          <div id="valoTacControls" class="controls-inline hidden">
+            <div class="controls-card">
+              <button id="toggleMapListBtn" class="secondary-btn map-toggle-btn">Select Map</button>
+
+              <div id="valoMapDropdown" class="map-dropdown hidden">
+                <div id="valoMapList" class="map-list"></div>
+              </div>
+
+              <button id="toggleAgentListBtn" class="secondary-btn map-toggle-btn">Agents</button>
+
+              <div id="agentDropdown" class="map-dropdown hidden">
+                <div id="agentTray" class="agent-tray agent-tray-dropdown"></div>
+              </div>
+
+              <button id="openOnlineModalBtn" class="secondary-btn map-toggle-btn">Online</button>
+
+              <label class="label">Цвета</label>
+              <div class="color-palette compact-palette" id="colorPalette">
+                <button class="color-swatch active" data-color="#0a84ff" style="background:#0a84ff;" aria-label="Blue"></button>
+                <button class="color-swatch" data-color="#30d158" style="background:#30d158;" aria-label="Green"></button>
+                <button class="color-swatch" data-color="#bf5af2" style="background:#bf5af2;" aria-label="Purple"></button>
+                <button class="color-swatch" data-color="#ff3b30" style="background:#ff3b30;" aria-label="Red"></button>
+                <button class="color-swatch" data-color="#ff8c00" style="background:#ff8c00;" aria-label="Orange"></button>
+                <button class="color-swatch" data-color="#ffd60a" style="background:#ffd60a;" aria-label="Yellow"></button>
+              </div>
+
+              <label class="label" for="brushSize">Толщина карандаша <span id="brushSizeValue">5</span></label>
+              <input id="brushSize" class="range-input" type="range" min="2" max="60" value="5" />
+
+              <label class="label" for="eraserSize">Размер ластика <span id="eraserSizeValue">14</span></label>
+              <input id="eraserSize" class="range-input" type="range" min="4" max="100" value="14" />
+
+              <div class="valo-actions valo-actions-inline">
+                <button id="undoMapBtn" class="secondary-btn">Undo</button>
+                <button id="toggleTipsBtn" class="tips-toggle-btn inline-tips-btn" aria-label="Открыть подсказки">
+                  <span class="tips-toggle-arrow">⌄</span>
+                </button>
+                <button id="clearMapBtn" class="secondary-btn">Clear</button>
+              </div>
+
+              <div id="valoTipsDropdown" class="tips-dropdown collapsed">
+                <div class="tips tips-panel">
+                  <div>ЛКМ — рисование</div>
+                  <div>ПКМ — ластик</div>
+                  <div>СКМ — передвижение карты</div>
+                  <div>Q / E — смена цвета</div>
+                  <div>Ctrl + колесо — толщина кисти</div>
+                  <div>Alt + колесо — размер ластика</div>
+                  <div>Space — центрировать карту</div>
+                  <div>R — очистка своих линий</div>
+                  <div>Ctrl + Z — Undo своих линий</div>
+                  <div>ЛКМ по агенту — перетаскивание</div>
+                  <div>ПКМ по агенту — удалить агента</div>
+                  <div>Колесо на агенте — размер агента</div>
+                  <div>Ctrl + F — поиск агентов</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="modeUpdates" class="game-mode-btn updates-btn" data-view="updates">
+          <span class="game-mode-icon">
+            <span class="updates-dot-icon"></span>
+          </span>
+          <span class="game-mode-label">Updates</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <section id="homeView" class="view active home-view">
+        <div class="welcome-card glow-panel">
+          <p class="welcome-simple-text">Выберите режим в меню слева.</p>
+        </div>
+      </section>
+
+      <section id="heroPickerView" class="view">
+        <div class="view-card glow-panel hero-picker-shell">
+          <div class="section-head hero-head">
+            <div>
+              <div class="section-eyebrow">Dota 2</div>
+              <h2>Hero Picker</h2>
+            </div>
+          </div>
+
+          <div id="result" class="result-shell">
+            <div id="heroEmptyState" class="empty-state hero-empty-state">
+              <div>
+                <div class="empty-title">Выберите кол-во героев</div>
+              </div>
+            </div>
+
+            <div id="heroCards" class="hero-cards-grid hidden"></div>
+
+            <div id="resetContainer" class="reset-container hidden">
+              <button id="resetRerollBtn" class="secondary-btn reset-reroll-btn">Reset Rerolls</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="valoTacView" class="view">
+        <div class="view-card glow-panel valotac-shell">
+          <div class="section-head valotac-head">
+            <div class="valotac-head-left">
+              <div class="section-eyebrow">Valorant</div>
+              <h2>ValoTac</h2>
+            </div>
+
+            <div class="players-corner-card">
+              <div class="players-corner-title">Users</div>
+              <div id="valoTacPlayersList" class="players-corner-list">
+                <div class="players-corner-empty">Offline</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="valo-map-status-bar">
+            <div id="valoStatus" class="map-status-outside map-status-glow">Выберите карту</div>
+          </div>
+
+          <div id="valoEmptyState" class="empty-state valotac-empty-state">
+            <div>
+              <div class="empty-title">Выберите карту</div>
+              <div class="empty-subtitle">Кнопка Select Map слева</div>
+            </div>
+          </div>
+
+          <div id="tacBoardWrap" class="tac-board-wrap hidden">
+            <div id="agentSearchOverlay" class="agent-search-overlay hidden">
+              <div class="agent-search-box">
+                <input
+                  id="agentSearchInput"
+                  class="agent-search-input"
+                  type="text"
+                  placeholder="Введите имя агента..."
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <div id="agentSearchResults" class="agent-search-results"></div>
+              </div>
+            </div>
+
+            <div id="tacBoard" class="tac-board">
+              <img id="valoMapImage" class="valo-map-image" alt="Valorant map" draggable="false" />
+              <canvas id="valoCanvas" class="valo-canvas"></canvas>
+              <div id="agentLayer" class="agent-layer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="updatesView" class="view">
+        <div class="view-card glow-panel updates-shell">
+          <div class="section-head updates-head">
+            <div>
+              <div class="section-eyebrow">System</div>
+              <h2>Updates</h2>
+            </div>
+          </div>
+
+          <div class="updates-panel">
+            <div class="update-meta-row">
+              <div class="update-version-box">
+                <span class="update-version-label">Текущая версия</span>
+                <span id="appVersionText" class="update-version-value">...</span>
+              </div>
+            </div>
+
+            <div id="updateStatusBox" class="update-status-box idle">
+              <div id="updateStatusText" class="update-status-text">Ожидание проверки обновлений...</div>
+              <div id="updateProgressWrap" class="update-progress-wrap hidden">
+                <div id="updateProgressBar" class="update-progress-bar"></div>
+              </div>
+            </div>
+
+            <div class="update-actions">
+              <button id="checkUpdatesBtn" class="secondary-btn">Check Updates</button>
+              <button id="installUpdateBtn" class="secondary-btn hidden">Install Update</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="onlineModalOverlay" class="modal-overlay hidden">
+    <div id="onlineModal" class="modal-card glow-panel" role="dialog" aria-modal="true" aria-labelledby="onlineModalTitle">
+      <div class="modal-head">
+        <div>
+          <div class="section-eyebrow">Multiplayer</div>
+          <h3 id="onlineModalTitle" class="modal-title">Online</h3>
+        </div>
+        <button id="closeOnlineModalBtn" class="modal-close-btn" type="button" aria-label="Закрыть">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="lobby-top-row modal-lobby-top-row">
+          <input id="lobbyNameInput" class="lobby-input" type="text" maxlength="24" placeholder="Ваш ник" value="Player" />
+          <input id="roomCodeInput" class="lobby-input room-code-input" type="text" maxlength="12" placeholder="Код комнаты" />
+        </div>
+
+        <div class="lobby-actions modal-lobby-actions">
+          <button id="createLobbyBtn" class="secondary-btn">Create Lobby</button>
+          <button id="joinLobbyBtn" class="secondary-btn">Join</button>
+          <button id="copyRoomCodeBtn" class="secondary-btn" disabled>Copy Code</button>
+          <button id="leaveLobbyBtn" class="secondary-btn" disabled>Leave</button>
+        </div>
+
+        <div class="lobby-info-row modal-lobby-info-row">
+          <div id="lobbyStatusText" class="lobby-status-text">Offline</div>
+          <div id="lobbyParticipants" class="lobby-participants"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
